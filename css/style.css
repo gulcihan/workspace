@@ -61,3 +61,35 @@ body {
 #wrap {
     width: 100%;
 }
+
+.goalkeeper li { 
+    margin-top: 2px;
+    height: 140px; 
+    padding: 0.4em; 
+    text-align: center; 
+    background-color: #ffdc00; 
+}
+
+.defense li { 
+    margin-top: 2px;
+    height: 140px; 
+    padding: 0.4em; 
+    text-align: center; 
+    background-color: #5d77eb; 
+}
+
+.midfield li { 
+    margin-top: 2px;
+    height: 140px; 
+    padding: 0.4em; 
+    text-align: center; 
+    background-color: #53b25c; 
+}
+
+.forward li { 
+    margin-top: 2px;
+    height: 140px; 
+    padding: 0.4em; 
+    text-align: center; 
+    background-color: #eb493a; 
+}
