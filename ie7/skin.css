@@ -34,10 +34,13 @@
 }
 
 .jcarousel-skin-ie7 .jcarousel-item {
-    width: 65px;
+    width: 75px;
     height: 70px;
     border: 1px solid #000000;
+    background-color: #ff00ff;
 }
+
+
 
 .jcarousel-skin-ie7 .jcarousel-item:hover,
 .jcarousel-skin-ie7 .jcarousel-item:focus {

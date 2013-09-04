@@ -3,7 +3,7 @@ body {
 	font-size: 62.5%;
 }
 
-#gallery { float: left; width: 100%; min-height: 12em; margin-left: 8px; }
+#gallery { float: left; width: 100%; min-height: 8em; margin-left: 8px;}
 .gallery.custom-state-active { background: #eee; }
 .gallery li { float: left; width: 33px; padding: 0.4em; margin: 2px; text-align: center; background-color: #66CD00; }
 .gallery li h5 { margin: 0 0 0.4em; cursor: move; }
@@ -14,37 +14,20 @@ body {
 #trash_right { 
     float: right; 
     width: 100px; 
-    height: 150px; 
+    height: 180px; 
     padding: 3px; 
-    margin-bottom: 10px;
+    margin-top: 10px;
 
 }
 
 #trash_left { 
     float: left; 
     width: 100px; 
-    height: 150px; 
+    height: 180px; 
     padding: 3px; 
-    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
-#trash_right_bottom { 
-    margin-top: 10px;
-    margin-right: 70px;
-    float: right; 
-    width: 100px; 
-    height: 150px; 
-    padding: 3px; 
-}
-
-#trash_left_bottom { 
-    margin-top: 10px;
-    margin-left: 70px;
-    float: left; 
-    width: 100px; 
-    height: 150px; 
-    padding: 3px; 
-}
 
 #trash h4 { line-height: 16px; margin: 0 0 0.4em; }
 #trash h4 .ui-icon { float: right; }
@@ -59,12 +42,13 @@ body {
 }
 
 #wrap {
-    width: 100%;
+    margin-left: 5px;
+    width: 80%;
 }
 
 .goalkeeper li { 
     margin-top: 2px;
-    height: 140px; 
+    height: 170px; 
     padding: 0.4em; 
     text-align: center; 
     background-color: #ffdc00; 
@@ -72,7 +56,7 @@ body {
 
 .defense li { 
     margin-top: 2px;
-    height: 140px; 
+    height: 170px; 
     padding: 0.4em; 
     text-align: center; 
     background-color: #5d77eb; 
@@ -80,7 +64,7 @@ body {
 
 .midfield li { 
     margin-top: 2px;
-    height: 140px; 
+    height: 170px; 
     padding: 0.4em; 
     text-align: center; 
     background-color: #53b25c; 
@@ -88,8 +72,9 @@ body {
 
 .forward li { 
     margin-top: 2px;
-    height: 140px; 
+    height: 170px; 
     padding: 0.4em; 
     text-align: center; 
     background-color: #eb493a; 
 }
+
