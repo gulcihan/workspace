@@ -25,7 +25,7 @@
 }
 
 .jcarousel-skin-ie7 .jcarousel-clip-horizontal {
-    height: 77px;
+    height: 110px;
 }
 
 .jcarousel-skin-ie7 .jcarousel-clip-vertical {
@@ -37,8 +37,24 @@
     width: 75px;
     height: 70px;
     border: 1px solid #000000;
-    background-color: #ff00ff;
 }
+
+.goalkeeper { 
+    background-color: #ffdc00; 
+}
+
+.defense { 
+    background-color: #5d77eb; 
+}
+
+.midfield { 
+    background-color: #53b25c; 
+}
+
+.forward { 
+    background-color: #eb493a; 
+}
+
 
 
 
@@ -189,3 +205,4 @@
     cursor: default;
     background-position: 0 -96px;
 }
+

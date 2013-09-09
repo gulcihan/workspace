@@ -34,7 +34,7 @@ def api(command):
         data = ""
     else:
         data = request.form.keys()[0]
-    r = requests.post('http://sentio.cloudapp.net:8080/api/'+command, data=data)
+    r = requests.post('http://sentios.cloudapp.net/api/'+command, data=data)
     return (r.content, r.status_code)
 
 if __name__ == '__main__':

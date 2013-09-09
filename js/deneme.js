@@ -11,15 +11,16 @@ $(function() {
 
   var $trash_left = $("#trash_left");// soldaki trash
   var $trash_right = $("#trash_right");// sağdaki trash
-
-
+  
+  var loadNew = false;
+  
 
   getTeamLogo();//gallerye takım logolarını koyuyoruz. asagidaki function i cagiriyoruz.
   $('#mycarousel').jcarousel({itemLoadCallback: putDefaultImage});// burada alttaki function i cagiriyorum.
-
+  $("#player_img").css("overflow","visible")// yoksa altta player name ler gözükmüyor.
 
   function putDefaultImage(carousel){//en basta carousel e default image koyuyorum.
-    var carousel_length = 25;
+    var carousel_length = 35;
     for (i = 0; i < carousel_length; i++) {
       carousel.add(i+1, $('<img src="/images/players/default.png" width="75" height="70" />'));
     }       
@@ -33,13 +34,17 @@ $(function() {
     });
   }
 
+  var teamId;
+
   function getTeamLogo() {
-    serviceRequest("GetTeams", {"leagueId": 1, "seasonId": 9064}, function(teamData){  
+   serviceRequest("GetTeams", {"leagueId": 1, "seasonId": 9064}, function(teamData){  
       _.each(teamData, function(value, i){
-        var xd = $("<li class=\"ui-widget-content ui-corner-tr\" id=\"" +teamData[i][0]+ "\"><h5 class=\"ui-widget-header\">Logo</h5></li>").appendTo("#gallery");          
+        var xd = $("<li class=\"ui-widget-content ui-corner-tr\" id=\"" + teamData[i][0] + "\"><h5 class=\"ui-widget-header\">Logo</h5></li>").appendTo("#gallery");          
         
 
         $('<img src="/images/teams/' + teamData[i][0] + '.png" />').click(function(){
+         
+          
           $("#player_img").hide();
           $("#LoadingImage").show();
           
@@ -49,38 +54,43 @@ $(function() {
           $(this).addClass("faded");
           $(this).fadeTo(400, 0.3);// tikladigimi soldurdum.
 
-          var teamId = teamData[i][0];
+          teamId = teamData[i][0];
           console.log(teamId + " is selected.");
           
-
+          loadNew = true;
           $('#mycarousel').jcarousel({itemLoadCallback: getPlayersOfTeam});// burada alttaki function i cagiriyorum.
 
-
           function getPlayersOfTeam(carousel) {//player imagelarını carousel in icine koyuyoruz.
-            serviceRequest("GetTeamPlayers", {"leagueId": 1, "seasonId": 9064, "teamId": teamId}, function(playersData){
-                
-            
-
+            if(!loadNew) return;
+            loadNew = false;
+            serviceRequest("GetTeamPlayers", {"leagueId": 1, "seasonId": 9064, "teamId": teamId}, function(playersData){  
+              
               _.each(playersData, function(val, i){ 
-                
-                carousel.add(i+1, $('<img src="/images/players/' + val[0] + '.jpg" style="width:55px; height:70px; margin-left:10px; backgroung-color: #000000;" data-player_position=' + val[3] + ' data-playername=' + val[1] + ' />'));  
+
+                carousel.add(i+1, $('<img src="/images/players/' + val[0] + '.jpg" style="width:55px; height:70px; margin-left:10px;" data-player_position=' + val[3] + ' data-playername=' + val[1] + ' /><h5 class=\"ui-widget-header\">' + val[1] + '</h5>'));  
                   
               });
 
               $(".jcarousel-item").each(function(){
-                var pos = $(this).find("img").data("player_position");
+                var position  = $(this).find("img").data("player_position");
+          
+                $(this).removeClass("goalkeeper");
+                $(this).removeClass("defense");
+                $(this).removeClass("midfield");
+                $(this).removeClass("forward");
 
-                if(pos==1){
-                  $(this).addClass("...");
+
+                if(position === 1){
+                  $(this).addClass("goalkeeper");
                 }
-                else if(pos==2){
-                  $(this).addClass("...");
+                else if(position === 2){
+                  $(this).addClass("defense");
                 }
-                else if(pos==3){
-                  $(this).addClass("...");
+                else if(position === 3){
+                  $(this).addClass("midfield");
                 }
-                else if(pos==4){
-                  $(this).addClass("...");
+                else if(position === 4){
+                  $(this).addClass("forward");
                 }
               });
 
@@ -88,22 +98,19 @@ $(function() {
               $("#player_img").show();
 
 
-              carousel.size(playersData.length);// carousele o kadar kutu koyuyor.
+              carousel.size(playersData.length + 1);// carousele o kadar kutu koyuyor.
               
              });
-          }    
-
-
+          }
          
 
         }).appendTo($(xd));        
+          
 
       });
       
 
-    });
-        
-   
+    });  
 
 
   }
@@ -115,7 +122,7 @@ $(function() {
     revert: "invalid", // when not dropped, the item will revert back to its initial position
     containment: "document",
     helper: "clone",
-    cursor: "move"
+    cursor: "move",   
   });
 
   // let the trashes be droppable, accepting the gallery items
@@ -140,10 +147,6 @@ $(function() {
 
 
 
-
-
-
-
 //*********************  Hazır, player img sürükleniyor  **************************************************
 
   var trash_left_array = new Array();//soldakilere konan resimler.
@@ -152,6 +155,9 @@ $(function() {
   var trash_left_count = 0;
   var trash_right_count = 0;
 
+  var teamId_of_players = new Array();
+
+
   function processPlayerImage( $item, $trash, integer) {
 
 
@@ -159,6 +165,10 @@ $(function() {
 
     $item.addClass("faded");
     $item.draggable("enable");
+
+    console.log("bu oyuncu hangi takımda oynuyor: " + teamId);
+    teamId_of_players.push(teamId);
+
     $item.fadeTo(400, 0.3, function() {
       if($trash.find("ul").length === 0){
 
@@ -200,19 +210,25 @@ $(function() {
       if(integer === 3){
         trash_left_count -= 1;
         element = trash_left_array[trash_left_array.length-2];//suan sol trashte olan,benim üstüne koymaya calıstıgım.
+
       }else if(integer === 4){
         trash_right_count -= 1;
         element = trash_right_array[trash_right_array.length-2];//suan sag trashte olan,benim üstüne koymaya calıstıgım.
+        
+
       }
 
-      element.fadeTo(400, 1, function(){});//eskisinin renkini tekrar canlandırdım.
+      if(teamId_of_players[teamId_of_players.length - 1] === teamId_of_players[teamId_of_players.length - 2]){// üstüne koyduğumla aynı takımda ise
+        element.fadeTo(400, 1, function(){}); 
+      }
+      
       element.draggable("enable");//ve onu tekrar draggable yaptım.
 
     }      
 
     newItem.fadeTo(400, 1, function(){//trashın icindeki bu clone un  boyutunu büyütüyorum.
       newItem.appendTo( $list ).fadeIn(function() {
-        newItem.animate({ width: "92px", margin: 0 }).find( "img" ).animate({ height: "165px",  width: "90px", margin:"0px"});
+        newItem.animate({ width: "92px", margin: 0 }).find( "img" ).animate({ height: "130px",  width: "90px", margin:"0px"});
       });
 
       newItem.click(function(){//bu trashtakine tıklarlarsa, geri gidicek.
