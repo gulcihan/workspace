@@ -37,15 +37,16 @@ $(function() {
   var teamId;
 
   function getTeamLogo() {
-   serviceRequest("GetTeams", {"leagueId": 1, "seasonId": 9064}, function(teamData){  
+
+    serviceRequest("GetTeams", {"leagueId": 1, "seasonId": 9064}, function(teamData){  
       _.each(teamData, function(value, i){
         var xd = $("<li class=\"ui-widget-content ui-corner-tr\" id=\"" + teamData[i][0] + "\"><h5 class=\"ui-widget-header\">Logo</h5></li>").appendTo("#gallery");          
         
 
-        $('<img src="/images/teams/' + teamData[i][0] + '.png" />').click(function(){
-         
-          
-          $("#player_img").hide();
+        $('<img src="/images/teams/' + teamData[i][0] + '.png" />').click(function(){  
+          console.log("trash_left_count: " + trash_left_count);
+                    
+          $("#mycarousel .jcarousel-clip").hide();
           $("#LoadingImage").show();
           
           $(".faded").fadeTo(400, 1);
@@ -66,9 +67,9 @@ $(function() {
             serviceRequest("GetTeamPlayers", {"leagueId": 1, "seasonId": 9064, "teamId": teamId}, function(playersData){  
               
               _.each(playersData, function(val, i){ 
-
-                carousel.add(i+1, $('<img src="/images/players/' + val[0] + '.jpg" style="width:55px; height:70px; margin-left:10px;" data-player_position=' + val[3] + ' data-playername=' + val[1] + ' /><h5 class=\"ui-widget-header\">' + val[1] + '</h5>'));  
-                  
+                //if(i < 10){
+                  carousel.add(i+1, $('<img src="/images/players/' + val[0] + '.jpg" style="width:55px; height:70px; margin-left:10px;" data-player_position=' + val[3] + ' data-playername=' + val[1] + ' /><h5 class=\"ui-widget-header\">' + val[1] + '</h5>'));  
+                //}
               });
 
               $(".jcarousel-item").each(function(){
@@ -95,35 +96,43 @@ $(function() {
               });
 
               $("#LoadingImage").hide();
-              $("#player_img").show();
+              $("#mycarousel .jcarousel-clip").show();
 
 
               carousel.size(playersData.length + 1);// carousele o kadar kutu koyuyor.
-              
+
+              /*$("#deneme-button").click(function(){
+                console.log("deniyorum a basıldı :)"); 
+                $(player_img).empty(); 
+
+                _.each(playersData, function(value, i){
+
+                    carousel.add(i+1, $('<img src="/images/players/' + playersData[i][0] + '.jpg" style="width:55px; height:70px; margin-left:10px;"/>'));   
+                });   
+              });*/
+
              });
-          }
+
+          }// end of getPlayersOfTeam function. 
          
 
-        }).appendTo($(xd));        
-          
+        }).appendTo($(xd));  
 
-      });
-      
+
+        
+
+      });     
 
     });  
-
-
   }
-
- 
-
-  $( "li", $player_img ).draggable({
-    cancel: "a.ui-icon", // clicking an icon won't initiate dragging
-    revert: "invalid", // when not dropped, the item will revert back to its initial position
-    containment: "document",
+ // allah stackover flow dan razı olsun: http://stackoverflow.com/questions/5811909/jquery-carousel-with-drag-and-drop.
+  $("li", $player_img).draggable({
+    appendTo: "body",
+    cancel: "a.ui-icon",
+    revert: "invalid",
     helper: "clone",
-    cursor: "move",   
-  });
+    cursor: "move"
+});
 
   // let the trashes be droppable, accepting the gallery items
   $trash_left.droppable({
@@ -159,7 +168,6 @@ $(function() {
 
 
   function processPlayerImage( $item, $trash, integer) {
-
 
     var player_position = $item.find("img").data("player_position");
 
