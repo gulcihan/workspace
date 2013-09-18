@@ -11,21 +11,31 @@ $(function() {
 
   var $trash_left = $("#trash_left");// soldaki trash
   var $trash_right = $("#trash_right");// sağdaki trash
+
+
+  var trash_left_array = new Array();//soldakilere konan resimler.
+  var trash_right_array = new Array();//sağdakilere konan resimler.
+
+  var trash_left_count = 0;
+  var trash_right_count = 0;
+
+  var teamId_of_players_trash_left = new Array();// oyuncunun oynadığı takımının team id sini tutuyorum.
+  var teamId_of_players_trash_right = new Array();// oyuncunun oynadığı takımının team id sini tutuyorum.
+
+  var element;
   
   var loadNew = false;
   
 
   getTeamLogo();//gallerye takım logolarını koyuyoruz. asagidaki function i cagiriyoruz.
-  $('#mycarousel').jcarousel({itemLoadCallback: putDefaultImage});// burada alttaki function i cagiriyorum.
+  $('#mycarousel').jcarousel();// carousel i çağırıyorum.
+
+  $("#mycarousel .jcarousel-clip").hide();
+  $("#SelectTeam").show();
+
+
   $("#player_img").css("overflow","visible")// yoksa altta player name ler gözükmüyor.
 
-  function putDefaultImage(carousel){//en basta carousel e default image koyuyorum.
-    var carousel_length = 35;
-    for (i = 0; i < carousel_length; i++) {
-      carousel.add(i+1, $('<img src="/images/players/default.png" width="75" height="70" />'));
-    }       
-    carousel.size(carousel_length);// carousele o kadar kutu koyuyor
-  }
 
 
   function serviceRequest(method, data, callback){
@@ -35,6 +45,9 @@ $(function() {
   }
 
   var teamId;
+  var element_left;
+  var element_right;
+
 
   function getTeamLogo() {
 
@@ -43,14 +56,18 @@ $(function() {
         var xd = $("<li class=\"ui-widget-content ui-corner-tr\" id=\"" + teamData[i][0] + "\"><h5 class=\"ui-widget-header\">Logo</h5></li>").appendTo("#gallery");          
         
 
-        $('<img src="/images/teams/' + teamData[i][0] + '.png" />').click(function(){  
-          console.log("trash_left_count: " + trash_left_count);
-                    
+        $('<img src="/images/teams/' + teamData[i][0] + '.png" />').click(function(){ // takım logosuna tıklandı.
+          $(element_left).fadeTo(400, 1); 
+          $(element_right).fadeTo(400, 1);          
+
+
+          $("#SelectTeam").hide();
           $("#mycarousel .jcarousel-clip").hide();
           $("#LoadingImage").show();
           
-          $(".faded").fadeTo(400, 1);
+          $(".faded").fadeTo(400, 1);// her image canlı gözüksün diye.
           $(".faded").removeClass("faded");
+          
 
           $(this).addClass("faded");
           $(this).fadeTo(400, 0.3);// tikladigimi soldurdum.
@@ -59,18 +76,25 @@ $(function() {
           console.log(teamId + " is selected.");
           
           loadNew = true;
-          $('#mycarousel').jcarousel({itemLoadCallback: getPlayersOfTeam});// burada alttaki function i cagiriyorum.
+
+          // http://stackoverflow.com/questions/14493962/reset-or-reload-jcarousel-on-tab-change
+          $('#mycarousel').data('jcarousel').scroll(0);// carouseli en baştan başlatıyor.
+
+          $('#mycarousel').jcarousel({itemLoadCallback: getPlayersOfTeam });
+         
 
           function getPlayersOfTeam(carousel) {//player imagelarını carousel in icine koyuyoruz.
+          
             if(!loadNew) return;
             loadNew = false;
+
+
             serviceRequest("GetTeamPlayers", {"leagueId": 1, "seasonId": 9064, "teamId": teamId}, function(playersData){  
               
               _.each(playersData, function(val, i){ 
-                //if(i < 10){
-                  carousel.add(i+1, $('<img src="/images/players/' + val[0] + '.jpg" style="width:55px; height:70px; margin-left:10px;" data-player_position=' + val[3] + ' data-playername=' + val[1] + ' /><h5 class=\"ui-widget-header\">' + val[1] + '</h5>'));  
-                //}
+                  carousel.add(i+1, $('<img src="/images/players/' + val[0] + '.jpg" style="width:55px; height:70px; margin-left:10px;" data-player_position=' + val[3] + ' data-player_id=' + val[0] + ' data-name=' + val[1] + ' /><h5 class=\"ui-widget-header\">' + val[1] + '</h5>')); 
               });
+
 
               $(".jcarousel-item").each(function(){
                 var position  = $(this).find("img").data("player_position");
@@ -100,46 +124,72 @@ $(function() {
 
 
               carousel.size(playersData.length + 1);// carousele o kadar kutu koyuyor.
-
-              /*$("#deneme-button").click(function(){
-                console.log("deniyorum a basıldı :)"); 
-                $(player_img).empty(); 
-
-                _.each(playersData, function(value, i){
-
-                    carousel.add(i+1, $('<img src="/images/players/' + playersData[i][0] + '.jpg" style="width:55px; height:70px; margin-left:10px;"/>'));   
-                });   
-              });*/
+              $("li", $player_img).draggable({
+                  appendTo: "body",
+                  cancel: "a.ui-icon",
+                  revert: "invalid",
+                  helper: "clone",
+                  cursor: "move",
+                });
 
              });
 
           }// end of getPlayersOfTeam function. 
+
+          console.log("su anki team id: " + teamId + ", sol trashtakinin takımı " + teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1]); 
+          console.log("su anki team id: " + teamId + ", sağ trashtakinin takımı " + teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1] + "\n"); 
+
+
+          //fenerden webo yu sol trash e attım mesela, sonra galatasaraya tıkladım onun oyuncuları geldi
+          //ama ben hic bisey secmedim. sonra geri fenere tıkladım onun oyuncuları geldi. webo trashte olduğu 
+          //icin on u yine soluk yapmam lazım. bu asagıdaki iki tane if bu isi yapıyor.
+
+          if(trash_left_count > 0){ 
+            element = trash_left_array[trash_left_array.length-1];//suan sol trashte olan.
+            element.draggable("enable");
+
+            var current_in_trash = teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1]; 
+            if(teamId === current_in_trash){
+              console.log("simdi bunu yine soldurucam (sol)!");
+              element_left = trash_left_array[trash_left_array.length -1];
+              $(element_left).fadeTo(400, 0.3); 
+              $(element_left).draggable("disable");
+            }
+          }
+
+
+          if(trash_right_count > 0){
+            element = trash_right_array[trash_right_array.length-1];//suan sağ trashte olan.
+            element.draggable("enable");
+
+            var current_in_trash = teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1];
+            if(teamId === current_in_trash){
+              console.log("simdi bunu yine soldurucam (sağ) !");
+              element_right = trash_right_array[trash_right_array.length -1];
+              $(element_right).fadeTo(400, 0.3);
+              $(element_right).draggable("disable");
+            }
+          } 
          
 
-        }).appendTo($(xd));  
-
-
-        
+        }).appendTo($(xd));        
 
       });     
 
     });  
-  }
+  }// end of getTeamLogo
+
+
  // allah stackover flow dan razı olsun: http://stackoverflow.com/questions/5811909/jquery-carousel-with-drag-and-drop.
-  $("li", $player_img).draggable({
-    appendTo: "body",
-    cancel: "a.ui-icon",
-    revert: "invalid",
-    helper: "clone",
-    cursor: "move"
-});
+  
+
 
   // let the trashes be droppable, accepting the gallery items
   $trash_left.droppable({
     accept: "#player_img > li",
     activeClass: "ui-state-highlight",
     drop: function( event, ui ) {
-      $(ui.draggable).draggable("disable");
+      //$(ui.draggable).draggable("disable");
       processPlayerImage( ui.draggable , $trash_left, 3);
     }
   });
@@ -148,7 +198,7 @@ $(function() {
     accept: "#player_img > li",
     activeClass: "ui-state-highlight",
     drop: function( event, ui ) {
-      $(ui.draggable).draggable("disable");
+      //$(ui.draggable).draggable("enable");
       processPlayerImage( ui.draggable , $trash_right, 4);
     }
   });
@@ -158,26 +208,25 @@ $(function() {
 
 //*********************  Hazır, player img sürükleniyor  **************************************************
 
-  var trash_left_array = new Array();//soldakilere konan resimler.
-  var trash_right_array = new Array();//sağdakilere konan resimler.
+  
 
-  var trash_left_count = 0;
-  var trash_right_count = 0;
-
-  var teamId_of_players = new Array();
 
 
   function processPlayerImage( $item, $trash, integer) {
 
     var player_position = $item.find("img").data("player_position");
+    var player_id = $item.find("img").data("player_id");
+
 
     $item.addClass("faded");
-    $item.draggable("enable");
+    $item.draggable("disable");
 
-    console.log("bu oyuncu hangi takımda oynuyor: " + teamId);
-    teamId_of_players.push(teamId);
+    //console.log("bu oyuncu hangi takımda oynuyor: " + teamId);
+    //console.log("bu oyuncunun player id si: " + player_id);
+
 
     $item.fadeTo(400, 0.3, function() {
+      console.log("carouseldeki original soldu !");
       if($trash.find("ul").length === 0){
 
         if(player_position === 1){
@@ -196,16 +245,18 @@ $(function() {
     });//sectigim item ı soldurdu.
     
 
-    console.log($item.find("img").data("playername") + " is selected :))\n ");
+    console.log($item.find("img").data("name") + " is selected :))\n ");
    
 
 
-    if(integer === 3){// 1 soldaki trashlar demek.
-      trash_left_array.push($item);//sectigim item i, sola atmak istiyosam, solun arrayine koyuyorum.
+    if(integer === 3){// 3 -> soldaki trashlar demek.
+      trash_left_array.push($item);//sectigim itemi, sola atmak istiyosam, solun arrayine koyuyorum.
+      teamId_of_players_trash_left.push(teamId);
       trash_left_count += 1;//şimdi, kutuda bir img oldugu icin count unu 1 yaptım.
 
-    }else if(integer === 4){// 2 sağdaki trashlar demek.
-      trash_right_array.push($item);//sectigim item ı, sağa atmak istiyosam, sağın arrayine koyuyorum.
+    }else if(integer === 4){// 4 -> sağdaki trashlar demek.
+      trash_right_array.push($item);//sectigim itemi, sağa atmak istiyosam, sağın arrayine koyuyorum.
+      teamId_of_players_trash_right.push(teamId);
       trash_right_count += 1;//şimdi, kutuda bir img oldugu icin count unu 1 yaptım.
     }
 
@@ -214,7 +265,7 @@ $(function() {
     if(trash_left_count > 1 || trash_right_count > 1){// 2. image i koymaya calisiyorum demek oluyor.
       $trash.empty();
 
-      var element;
+      
       if(integer === 3){
         trash_left_count -= 1;
         element = trash_left_array[trash_left_array.length-2];//suan sol trashte olan,benim üstüne koymaya calıstıgım.
@@ -226,10 +277,24 @@ $(function() {
 
       }
 
-      if(teamId_of_players[teamId_of_players.length - 1] === teamId_of_players[teamId_of_players.length - 2]){// üstüne koyduğumla aynı takımda ise
-        element.fadeTo(400, 1, function(){}); 
+      console.log("teamId: " + teamId);
+
+      if(trash_left_count > 0){
+        if((teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1] === teamId_of_players_trash_left[teamId_of_players_trash_left.length - 2]) && (teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1] === teamId)){// üstüne koyduğumla aynı takımda ise
+          element.fadeTo(400, 1, function(){}); 
+          console.log("ffff");
+
+        }
       }
-      
+
+      if(trash_right_count > 0){
+        if((teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1] === teamId_of_players_trash_right[teamId_of_players_trash_right.length - 2]) && (teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1] === teamId)){// üstüne koyduğumla aynı takımda ise
+          element.fadeTo(400, 1, function(){}); 
+          console.log("üüüü" + teamId_of_players_trash_right.length);
+
+        }
+      }
+
       element.draggable("enable");//ve onu tekrar draggable yaptım.
 
     }      
@@ -240,7 +305,7 @@ $(function() {
       });
 
       newItem.click(function(){//bu trashtakine tıklarlarsa, geri gidicek.
-        console.log($item.find("img").data("playername") + " is sent back!");
+        console.log($item.find("img").data("name") + " is sent back!");
         $item.draggable("enable");//tekrar sürüklenebilir oldu.
 
         $item.fadeTo(400, 1, function(){//dolayısıyle de trash boşalıcak.
@@ -257,7 +322,8 @@ $(function() {
       }).appendTo(newItem);
 
 
-    });      
+    }); 
+
   }
 
 
