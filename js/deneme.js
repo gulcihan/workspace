@@ -6,50 +6,52 @@
 
 $(function() {
 
-  var $gallery = $( "#gallery" );// takım logolarının durduğu kısım
-  var $player_img = $( "#player_img" );// carousel de player img ların durduğu kısım
+  var $gallery = $( "#gallery" );//takım logolarının durduğu kısım
+  var $player_img = $( "#player_img" );//carousel de player img ların durduğu kısım
 
-  var $trash_left = $("#trash_left");// soldaki trash
-  var $trash_right = $("#trash_right");// sağdaki trash
+  var $trash_left = $("#trash_left");//soldaki trash, buraya player imageları getirip bırakıcaz.
+  var $trash_right = $("#trash_right");//sağdaki trash, buraya player imageları getirip bırakıcaz.
 
 
-  var trash_left_array = new Array();//soldakilere konan resimler.
-  var trash_right_array = new Array();//sağdakilere konan resimler.
+  var trash_left_array = new Array();//soldaki trashe hangi player imageları koydugum.
+  var trash_right_array = new Array();//sağdaki trashe hangi player imageları koydugum.
 
-  var trash_left_count = 0;
-  var trash_right_count = 0;
+  var trash_left_count = 0; //sol trashe image koyunca 1, bos kalırsa 0 olucak.
+  var trash_right_count = 0; //sag trashe image koyunca 1, bos kalırsa 0 olucak.
 
-  var teamId_of_players_trash_left = new Array();// oyuncunun oynadığı takımının team id sini tutuyorum.
-  var teamId_of_players_trash_right = new Array();// oyuncunun oynadığı takımının team id sini tutuyorum.
+  var teamId_of_players_trash_left = new Array();//sol trashe koydugum oyuncunun oynadığı takımının team id sini tutuyorum.
+  var teamId_of_players_trash_right = new Array();//sag trashe koydugum oyuncunun oynadığı takımının team id sini tutuyorum.
 
-  var element;
   
-  var loadNew = false;
+  var loadNew = false;//surekli getPlayersOfTeam i cagırmasın diye bundan faydalanıcam.
   
+  // ********************** HERE WE START *************************
 
-  getTeamLogo();//gallerye takım logolarını koyuyoruz. asagidaki function i cagiriyoruz.
-  $('#mycarousel').jcarousel();// carousel i çağırıyorum.
+  getTeamLogo();//function i cagiriyoruz, databaseden takımları alıyor, logolarını folderdan alıp koyuyor.
+  $('#mycarousel').jcarousel();//carousel i çağırıyorum.
 
-  $("#mycarousel .jcarousel-clip").hide();
-  $("#SelectTeam").show();
-
-
-  $("#player_img").css("overflow","visible")// yoksa altta player name ler gözükmüyor.
+  $("#mycarousel .jcarousel-clip").hide();// carouselde normalde boş kutular gözüküyor, onları saklıyorum.
+  $("#SelectTeam").show();// carouselin icinde select a team yazısını gösteriyorum. 
 
 
+  $("#player_img").css("overflow","visible");// bunu yapmam lazım yoksa altta player name ler gözükmüyor.
 
+
+  // database den data cekmek icin kullanıcam bu fonksiyonu.
   function serviceRequest(method, data, callback){
     $.post("/api/" + method, JSON.stringify(data)).done(function(data){
       callback(JSON.parse(data).data);
     });
   }
 
-  var teamId;
-  var element_left;
-  var element_right;
+  var teamId;//secili olan takımın id sini her zaman tutuyorum.
+  var element_left;// sol trashte olan item.
+  var element_right;//sag trashte olan item.
+
+  var element;
 
 
-  function getTeamLogo() {
+  function getTeamLogo() {// database e request yapıp, takım logolarını alıyorum.
 
     serviceRequest("GetTeams", {"leagueId": 1, "seasonId": 9064}, function(teamData){  
       _.each(teamData, function(value, i){
@@ -57,6 +59,7 @@ $(function() {
         
 
         $('<img src="/images/teams/' + teamData[i][0] + '.png" />').click(function(){ // takım logosuna tıklandı.
+          
           $(element_left).fadeTo(400, 1); 
           $(element_right).fadeTo(400, 1);          
 
@@ -70,7 +73,7 @@ $(function() {
           
 
           $(this).addClass("faded");
-          $(this).fadeTo(400, 0.3);// tikladigimi soldurdum.
+          $(this).fadeTo(400, 0.3);// tikladigim takım logosunu soldurdum.
 
           teamId = teamData[i][0];
           console.log(teamId + " is selected.");
@@ -80,7 +83,7 @@ $(function() {
           // http://stackoverflow.com/questions/14493962/reset-or-reload-jcarousel-on-tab-change
           $('#mycarousel').data('jcarousel').scroll(0);// carouseli en baştan başlatıyor.
 
-          $('#mycarousel').jcarousel({itemLoadCallback: getPlayersOfTeam });
+          $('#mycarousel').jcarousel({itemLoadCallback: getPlayersOfTeam });//carousel e sectigim takımın player image larını koyuyorum.
          
 
           function getPlayersOfTeam(carousel) {//player imagelarını carousel in icine koyuyoruz.
@@ -117,20 +120,24 @@ $(function() {
                 else if(position === 4){
                   $(this).addClass("forward");
                 }
-              });
+              });//playerın position ına göre background-color ayarlıyorum.
 
               $("#LoadingImage").hide();
               $("#mycarousel .jcarousel-clip").show();
 
 
               carousel.size(playersData.length + 1);// carousele o kadar kutu koyuyor.
-              $("li", $player_img).draggable({
+              $("#player_img").css("left","0");// bunu yapmazsam her seferinde player imagelar sağa kayıyor.
+
+              
+              // allah stackover flow dan razı olsun: http://stackoverflow.com/questions/5811909/jquery-carousel-with-drag-and-drop.
+              $("li", $player_img).draggable({// player imageların durdugu yeri draggable yapıyoruz.
                   appendTo: "body",
                   cancel: "a.ui-icon",
                   revert: "invalid",
                   helper: "clone",
                   cursor: "move",
-                });
+              });
 
              });
 
@@ -142,15 +149,15 @@ $(function() {
 
           //fenerden webo yu sol trash e attım mesela, sonra galatasaraya tıkladım onun oyuncuları geldi
           //ama ben hic bisey secmedim. sonra geri fenere tıkladım onun oyuncuları geldi. webo trashte olduğu 
-          //icin on u yine soluk yapmam lazım. bu asagıdaki iki tane if bu isi yapıyor.
+          //icin onu yine soluk yapmam lazım. iste asagıdaki iki tane if bu isi yapıyor.
 
-          if(trash_left_count > 0){ 
+          if(trash_left_count > 0){ // first if statement
             element = trash_left_array[trash_left_array.length-1];//suan sol trashte olan.
             element.draggable("enable");
 
             var current_in_trash = teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1]; 
             if(teamId === current_in_trash){
-              console.log("simdi bunu yine soldurucam (sol)!");
+              console.log("simdi bunu yine soldurucam (left)!");
               element_left = trash_left_array[trash_left_array.length -1];
               $(element_left).fadeTo(400, 0.3); 
               $(element_left).draggable("disable");
@@ -158,13 +165,13 @@ $(function() {
           }
 
 
-          if(trash_right_count > 0){
+          if(trash_right_count > 0){// second if statement.
             element = trash_right_array[trash_right_array.length-1];//suan sağ trashte olan.
             element.draggable("enable");
 
             var current_in_trash = teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1];
             if(teamId === current_in_trash){
-              console.log("simdi bunu yine soldurucam (sağ) !");
+              console.log("simdi bunu yine soldurucam (right) !");
               element_right = trash_right_array[trash_right_array.length -1];
               $(element_right).fadeTo(400, 0.3);
               $(element_right).draggable("disable");
@@ -180,13 +187,9 @@ $(function() {
   }// end of getTeamLogo
 
 
- // allah stackover flow dan razı olsun: http://stackoverflow.com/questions/5811909/jquery-carousel-with-drag-and-drop.
-  
-
-
   // let the trashes be droppable, accepting the gallery items
   $trash_left.droppable({
-    accept: "#player_img > li",
+    accept: "#player_img > li , #trash_right",
     activeClass: "ui-state-highlight",
     drop: function( event, ui ) {
       //$(ui.draggable).draggable("disable");
@@ -204,11 +207,7 @@ $(function() {
   });
 
 
-
-
-//*********************  Hazır, player img sürükleniyor  **************************************************
-
-  
+//*********************  Hazır, player img sürükleniyor  ************************************************** 
 
 
 
@@ -219,14 +218,10 @@ $(function() {
 
 
     $item.addClass("faded");
-    $item.draggable("disable");
-
-    //console.log("bu oyuncu hangi takımda oynuyor: " + teamId);
-    //console.log("bu oyuncunun player id si: " + player_id);
+    $item.draggable("disable"); // simdi bu sürüklediğimiz sey artık sürüklenemez olucak.
 
 
     $item.fadeTo(400, 0.3, function() {
-      console.log("carouseldeki original soldu !");
       if($trash.find("ul").length === 0){
 
         if(player_position === 1){
@@ -242,7 +237,7 @@ $(function() {
       } else {
         $list = $trash.find("ul");
       }
-    });//sectigim item ı soldurdu.
+    });//sectigim item ı soldurdum ve drop ettigim kutuda arka planın color ını player_position a göre ayarladım.
     
 
     console.log($item.find("img").data("name") + " is selected :))\n ");
@@ -251,12 +246,12 @@ $(function() {
 
     if(integer === 3){// 3 -> soldaki trashlar demek.
       trash_left_array.push($item);//sectigim itemi, sola atmak istiyosam, solun arrayine koyuyorum.
-      teamId_of_players_trash_left.push(teamId);
+      teamId_of_players_trash_left.push(teamId);// kutulara konanların team id lerini de tutuyorum.
       trash_left_count += 1;//şimdi, kutuda bir img oldugu icin count unu 1 yaptım.
 
     }else if(integer === 4){// 4 -> sağdaki trashlar demek.
       trash_right_array.push($item);//sectigim itemi, sağa atmak istiyosam, sağın arrayine koyuyorum.
-      teamId_of_players_trash_right.push(teamId);
+      teamId_of_players_trash_right.push(teamId);// kutulara konanların team id lerini de tutuyorum.
       trash_right_count += 1;//şimdi, kutuda bir img oldugu icin count unu 1 yaptım.
     }
 
@@ -277,21 +272,15 @@ $(function() {
 
       }
 
-      console.log("teamId: " + teamId);
-
       if(trash_left_count > 0){
         if((teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1] === teamId_of_players_trash_left[teamId_of_players_trash_left.length - 2]) && (teamId_of_players_trash_left[teamId_of_players_trash_left.length - 1] === teamId)){// üstüne koyduğumla aynı takımda ise
           element.fadeTo(400, 1, function(){}); 
-          console.log("ffff");
-
         }
       }
 
       if(trash_right_count > 0){
         if((teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1] === teamId_of_players_trash_right[teamId_of_players_trash_right.length - 2]) && (teamId_of_players_trash_right[teamId_of_players_trash_right.length - 1] === teamId)){// üstüne koyduğumla aynı takımda ise
           element.fadeTo(400, 1, function(){}); 
-          console.log("üüüü" + teamId_of_players_trash_right.length);
-
         }
       }
 
@@ -320,9 +309,9 @@ $(function() {
 
 
       }).appendTo(newItem);
-
-
     }); 
+
+
 
   }
 
